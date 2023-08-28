@@ -7,7 +7,7 @@ pub fn build(b: *std.Build) void {
         .cpu_arch = .x86_64,
     };
 
-    const optimize = .Debug;
+    const optimize = .ReleaseFast;
 
     const exe = b.addExecutable(.{
         .name = "Armored Core 6 Unlock",
@@ -16,6 +16,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    exe.subsystem = .Console;
     exe.linkLibC();
 
     b.installArtifact(exe);

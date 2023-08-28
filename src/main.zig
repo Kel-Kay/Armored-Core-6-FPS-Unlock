@@ -49,6 +49,8 @@ pub fn main() !void {
         mod_name = proc_names[1];
     }
 
+    defer _ = win.CloseHandle(proc_handle);
+
     const mod_handle = try tools.findModule(proc_handle, mod_name);
     const mod_size = try tools.getModuleSize(proc_handle, mod_handle);
     const mod_copy = win.VirtualAlloc(null, mod_size, win.MEM_COMMIT | win.MEM_RESERVE, win.PAGE_READWRITE) orelse return error.FailedToCopyModule;
