@@ -132,9 +132,6 @@ pub fn findModule(process_handle: *anyopaque, name: [*:0]const u16) failure!*any
 
     const success = win.EnumProcessModulesEx(process_handle, &module_data, buffer_size * @sizeOf(win.HMODULE), &data_size, win.LIST_MODULES_64BIT);
 
-    var exit_code: u32 = 0;
-    _ = win.GetExitCodeProcess(process_handle, &exit_code);
-
     var name_buffer: [buffer_size:0]u16 = undefined;
 
     if (success == win.TRUE) {

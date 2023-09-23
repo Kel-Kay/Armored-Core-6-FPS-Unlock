@@ -8,8 +8,12 @@ const proc_names = [_][*:0]const u16{
 };
 
 const fps_pattern = [_]?u8{ 0x89, 0x88, 0x08, 0x3C, 0xEB, null, 0xC7, 0x43, null, 0x89, 0x88, 0x08, 0x3C };
+const hz_pattern = [_]?u8{ 0xEB, null, 0xC7, null, null, 0x3C, 0x00, 0x00, 0x00, 0xC7, null, null, 0x01, 0x00, 0x00, 0x00 };
 
 const fps_pattern_offset = 9;
+const hz_pattern_offset_one = 5;
+const hz_pattern_offset_two = 12;
+const hz_jmp_offset = 21;
 
 const new_cap = 360.0;
 const new_frametime: f32 = 1.0 / new_cap;
@@ -61,9 +65,19 @@ pub fn main() !void {
     const fps_pattern_ptr = try tools.findPattern(&fps_pattern, mod_copy, mod_size);
     const fps_pattern_rel = @intFromPtr(fps_pattern_ptr) - @intFromPtr(mod_copy);
 
+    const hz_pattern_ptr = try tools.findPattern(&hz_pattern, mod_copy, mod_size);
+    const hz_pattern_rel = @intFromPtr(hz_pattern_ptr) - @intFromPtr(mod_copy);
+
+    var empty_dword = std.mem.zeroes(u32);
+    var jmp_near: u8 = 0xEB;
+
     var success = win.TRUE;
     success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + fps_pattern_rel), &new_frametime, @sizeOf(f32), null);
     success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + fps_pattern_rel + fps_pattern_offset), &new_frametime, @sizeOf(f32), null);
+
+    success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel + hz_pattern_offset_one), &empty_dword, @sizeOf(u32), null);
+    success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel + hz_pattern_offset_two), &empty_dword, @sizeOf(f32), null);
+    success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel - hz_jmp_offset), &jmp_near, @sizeOf(u8), null);
 
     return if (success == win.FALSE) error.FailedToWriteProcessMemory;
 }
