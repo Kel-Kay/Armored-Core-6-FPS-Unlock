@@ -13,7 +13,7 @@ const hz_pattern = [_]?u8{ 0xEB, null, 0xC7, null, null, 0x3C, 0x00, 0x00, 0x00,
 const fps_pattern_offset = 9;
 const hz_pattern_offset_one = 5;
 const hz_pattern_offset_two = 12;
-const hz_jmp_offset = 21;
+const hz_jmp_offset = -21;
 
 const new_cap = 360.0;
 const new_frametime: f32 = 1.0 / new_cap;
@@ -29,7 +29,7 @@ pub fn main() !void {
             var proc_info: win.PROCESS_INFORMATION = undefined;
             var startup_info: win.STARTUPINFOW = undefined;
 
-            _ = win.GetStartupInfoW(&startup_info);
+            win.GetStartupInfoW(&startup_info);
 
             const proc_creation = win.CreateProcessW(proc_names[0], win.GetCommandLineW(), null, null, win.FALSE, 0, null, null, &startup_info, &proc_info);
 
@@ -38,7 +38,9 @@ pub fn main() !void {
             _ = win.CloseHandle(proc_info.hProcess);
             _ = win.CloseHandle(proc_info.hThread);
 
-            _ = win.Sleep(5000);
+            win.Sleep(5000);
+        } else {
+            return error.FailedToFindGameExecutable;
         }
     }
 
@@ -76,8 +78,8 @@ pub fn main() !void {
     success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + fps_pattern_rel + fps_pattern_offset), &new_frametime, @sizeOf(f32), null);
 
     success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel + hz_pattern_offset_one), &empty_dword, @sizeOf(u32), null);
-    success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel + hz_pattern_offset_two), &empty_dword, @sizeOf(f32), null);
-    success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel - hz_jmp_offset), &jmp_near, @sizeOf(u8), null);
+    success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel + hz_pattern_offset_two), &empty_dword, @sizeOf(u32), null);
+    success *= win.WriteProcessMemory(proc_handle, @ptrFromInt(@intFromPtr(mod_handle) + hz_pattern_rel + hz_jmp_offset), &jmp_near, @sizeOf(u8), null);
 
     return if (success == win.FALSE) error.FailedToWriteProcessMemory;
 }

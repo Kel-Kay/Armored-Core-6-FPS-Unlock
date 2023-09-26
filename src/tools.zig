@@ -127,7 +127,7 @@ pub fn findPattern(pattern: []const ?u8, mem_ptr: *anyopaque, mem_len: usize) fa
 pub fn findModule(process_handle: *anyopaque, name: [*:0]const u16) failure!*anyopaque {
     const buffer_size: usize = 4096;
 
-    var module_data: [buffer_size]win.HMODULE = std.mem.zeroes([buffer_size]win.HMODULE);
+    var module_data = std.mem.zeroes([buffer_size]win.HMODULE);
     var data_size: c_ulong = 0;
 
     const success = win.EnumProcessModulesEx(process_handle, &module_data, buffer_size * @sizeOf(win.HMODULE), &data_size, win.LIST_MODULES_64BIT);
